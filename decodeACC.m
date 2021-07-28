@@ -1,6 +1,6 @@
 function [values errors] = decodeACC(timevector, clusters, acc, tdecode, samplingrate, varagin)
-% decodes acceleration  based on cell firing. t is bins in seconds
-% inputs = %time velvector
+% decodes acceleration  based on cell firing.
+% inputs = %time
             %structure of clusters
             %actual acceleration from accel.m
             %tdecode = bin to decode in seconds. if this is >= .5 seconds there will be 2/tdecode overlap in decoding

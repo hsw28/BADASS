@@ -1,5 +1,5 @@
 function f = decodeVelSHIFT(timevector, clusters, vel, tdecode, maxSHIFT, shift_increment, samplingrate, varagin)
-  %allows you to shift decoding to see most accurate decoding offset
+  %allows you to shift decoding in time to see most accurate decoding offset
   %returns decoding errors per offset
   % inputs = %time
               %structure of clusters

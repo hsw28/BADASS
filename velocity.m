@@ -1,6 +1,7 @@
 function v = velocity(pos, varagin);
 %computes velocity. input a [#ofpoints, 3] vector, where first column is time, second is x, third is y
 %varargin is pixels per cm if inputting in pixels. if empty no conversion will be made
+%does not smooth
 % returns velocities in cm/s and time stamp vector
 
 if length(varargin{1})>0
@@ -36,6 +37,5 @@ end
 
 %velvector = filloutliers(velvector, 'pchip', 'movmedian',10);
 
-v = smoothdata(velvector,'gaussian',6);
 v = v(1:length(timevector));
 v = [(v/pix_cm); timevector];

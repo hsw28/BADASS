@@ -4,8 +4,6 @@ function [values errors] = decodeVel(timevector, clusters, vel, tdecode, samplin
               %structure of clusters
               %actual acc from velocity.m
               %tdecode = bin to decode in seconds. if this is >= .5 seconds there will be 2/tdecode overlap in decoding
-              %maximum amount of shift in seconds (for ex, 1 if you maximally want to shift 1 second)
-              % amount you would like to shift each run by, in seconds. for ex .01 for 10ms of shift 
               %time samples per second.
               %varagin = vector of bins to bin velocity into. if blank will be  [0, 7, 14, 21, 28, 35];
 

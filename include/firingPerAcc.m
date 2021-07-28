@@ -1,6 +1,6 @@
 function thingy = firingPerAcc(time, accelORvel, firingdata, t, vbin, avg_accel)
-% Takes pos data, timestamps, cluster data, and window size (in seconds)
-% outputs average firing rate per acc
+% Takes pos data, timestamps, cluster data (in a structure), and window size (in seconds)
+% outputs average cell firing rate per acc
 
 if size(time, 2) < size(time, 1)
 	time = time';

@@ -1,5 +1,9 @@
 function [values median_is mean_is] = velerror(decodedvel, vel)
-%returns an error in cm/s for each decoded time. can also use for decoded acc
+%returns an error in cm/s (vel) for each decoded time.
+%inputs should be:
+                  %decoded vell from decodeVel.m
+                  %computed acceleration from velocity.m
+                  %vel bins used in decoding
 
 time = decodedvel(2,:);
 decodedvel = decodedvel(1,:);
