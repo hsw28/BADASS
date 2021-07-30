@@ -1,18 +1,29 @@
-function [values median_error mean_error] = acc_error(decodedacc_or_vel_or_vel, acc_or_vel, vbin)
+function values  = acc_error(decodedacc, acc, tdecode)
 %returns an error in cm^2/s (acc) for each decoded time.
 %inputs should be:
                   %decoded acceleration from decodeACC.m
                   %computed acceleration from accel.m
-                  %acc bins used in decoding
+                  %decoded time bin in s
+%returns: values = [alldiff; realvel; time];
+        %difference in decoded acc versus actual
+        %actual acc
+        %time of decoding
 
 
-time = decodedacc_or_vel(2,:);
-decodedacc_or_vel = decodedacc_or_vel(1,:);
+
+time = decodedacc(2,:);
+decodedacc = decodedacc(1,:);
 
 
 %get acc lower 5 percent range
-
-binacc = bin_to_match(acc_or_vel(1,:), .5, 0, 30);
+if tdecode>=.5
+  overlap = tdecode./2;
+else
+  overlap = 0;
+end
+samprate = length(acc)./(max(acc(2,:))-min(acc(2,:)));
+samprate = round(samprate);
+binacc = bin_to_match(acc(1,:), tdecode, overlap, samprate);
 numwewant = length(binacc)*.05;
 [N,EDGES] = histcounts(binacc,length(binacc));
 k = length(N);
@@ -26,12 +37,12 @@ lim = EDGES(k)
 alldiff = [];
 closeacc = [];
 for i=1:length(time)
-  [c index] = (min(abs(time(i)-acc_or_vel(2,:))));
-  closeacc(end+1) = acc_or_vel(1,index);
+  [c index] = (min(abs(time(i)-acc(2,:))));
+  closeacc(end+1) = acc(1,index);
 
   %FOR ONLY GETTING NUMS IN ACC RANGE YOU WANT
-  if abs(acc_or_vel(1,index))<100 && abs(acc_or_vel(1,index))>20
-    diff = abs(decodedacc_or_vel(i)-acc_or_vel(1,index)); %keep this line always
+  if abs(acc(1,index))<100 && abs(acc(1,index))>20
+    diff = abs(decodedacc(i)-acc(1,index)); %keep this line always
   else
     diff = NaN;
   end
@@ -49,8 +60,6 @@ realacc = closeacc;
 values = [alldiff; realacc; time];
 
 
-temp2 = values(1,:);
-t = ~isnan(temp2);
-temp2 = temp2(t);
-mean_error = mean(temp2)
-median_error = median(temp2)
+fprintf('you errors are:')
+mean_error = nanmean(temp2)
+median_error = nanmedian(temp2)

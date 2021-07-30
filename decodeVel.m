@@ -1,28 +1,27 @@
-function [values errors] = decodeVel(timevector, clusters, vel, tdecode, samplingrate, varagin)
-  % decodes velocity  based on cell firing.
+function [values errors] = decodeVel(timevector, clusters, vel, tdecode, samplingrate, varargin)
+  % decodes velocity  based on cell firing. speed was binned into bins of 7cm/s up to 95% speed occupancy (e.g., [0, 7, 14, 21, 28, 35], where the last bin is all speeds >35cm/s
   % inputs = %time
               %structure of clusters
               %actual acc from velocity.m
               %tdecode = bin to decode in seconds. if this is >= .5 seconds there will be 2/tdecode overlap in decoding
-              %time samples per second.
-              %varagin = vector of bins to bin velocity into. if blank will be  [0, 7, 14, 21, 28, 35];
+              %time samples per second (hz)
+              %varargin = size of bins to bin speed into. if left blank, it will be 7cm/s per bin
 
   % returns values = [decoded velocity, timestamp, bin number, computed probability for being in bin]
-            %errors = errors computed from velerror.m
+  % returns errors = errors computed from velerror.m
 
-if length(varargin{1}) > 0
-      vbin = cell2mat(varargin)
+
+if length(cell2mat(varargin)) > 0
+    binnum = cell2mat(varargin)
 else
-      vbin = [0, 7, 14, 21, 28, 35];
+    binnum = 7;
 end
 
-
-tic
 t = tdecode;
 tsec = t;
-t = 2000*t;
+t = samplingrate*t;
 tdecodesec = tdecode;
-tdecode = tdecode*2000;
+tdecode = tdecode*samplingrate;
 tm = 1;
 
 mintime = vel(2,1);
@@ -31,11 +30,8 @@ maxtime = vel(2,end);
 [c indexmin] = (min(abs(timevector-mintime))); %how close the REM time is to velocity-- index is for REM time
 [c indexmax] = (min(abs(timevector-maxtime))); %how close the REM time is to velocity
 decodetimevector = timevector(indexmin:indexmax); %time vector is the REM time
-if length(decodetimevector)<3 %this means vel didnt overlap with REM and its REM
-  decodetimevector = [mintime:1/2000:maxtime];
-else
   timevector = decodetimevector;
-end
+
 
 vel(1,:) = smoothdata(vel(1,:), 'gaussian', 30); %originally had this at 30, trying with 15 now
 assvel = assignvel(decodetimevector, vel);
@@ -48,7 +44,7 @@ numclust = length(clustname);
 
 
 
-%%%NEW
+
 starttime = decodetimevector(1);
 endtime = decodetimevector(end);
 
@@ -76,8 +72,19 @@ avg_accel = avg_accel';
 
 
 
-vbin;
 
+binnedVelo = histcounts(avg_accel, 'BinWidth', binnum);
+binnedVelo = binnedVelo./sum(binnedVelo);
+k = length(binnedVelo);
+percentsum = 0;
+while percentsum<.05
+  percentsum = percentsum + binnedVelo(k);
+  k = k-1;
+end
+totbin = k+1;
+vbin = [0:binnum:totbin*binnum];
+fprintf('your speeeds are binned into:')
+vbin
 
 
 
@@ -87,30 +94,9 @@ fxmatrix = zeros(numclust, length(vbin));
 while j <= numclust
     name = char(clustname(j));
     firingdata = clusters.(name);
-    currclust = clusters.(name);
-
-
-
     fxmatrix(j,:) = firingPerVel(asstime, assvel, clusters.(name), tsec, vbin, avg_accel);
-
     dontwant = isnan(fxmatrix(j,:));
     fxmatrix(j,dontwant) = eps;
-
-    intime = find(currclust>=(decodetimevector(1)) & currclust<=decodetimevector(end));
-    clusters.(name) = currclust(intime);
-
-    if tdecodesec>=.5 %FOR TRAIN
-        [clusttrain edges] = histcounts(clusters.(name), [decodetimevector(1):.5:decodetimevector(end)]); %FOR TRAIN
-        train.(name) = clusttrain; %FOR TRAIN
-        train.(name) = smoothdata(clusttrain,'gaussian', 3); %3 is 1.5 seconds for a 1 second window
-
-    else
-        clusttrain = histcounts(clusters.(name), [decodetimevector(1):.5:decodetimevector(end)]); %FOR TRAIN
-        train.(name) = smoothdata(clusttrain,'gaussian', 3); %3 is 1.5 seconds for a 1 second window
-
-    end
-    %fxmatrix(j,:) = smoothdata(fxmatrix(j,:), 'gausswin')
-
     j = j+1;
 end
 
@@ -119,34 +105,20 @@ end
 fxmatrix;
 
 
- %find prob the animal is each velocity DONT NEED BUT CAN BE USEFUL
-
-%probatvelocity = zeros(length(vbin),1);
-%binnedV = binVel(asstime, vel, t/2000, vbin);
-%legitV = find(binnedV<100);
-%for k = 1:length(vbin)
-%    numvel = find(binnedV == (k));
-%    probatvelocity(k) = length(numvel)./length(legitV);
-%end
-%probatvelocity;
 
 
-
-% permue times
+% permute times
   maxprob = [];
   spikenum = 1;
   times = [];
   perc = [];
 
-%percents = zeros(length(timevector)-(rem(length(timevector), t)), length(vbin)) ;
 percents = [];
 nivector = zeros((numclust),1);
 
-trainnum = 1;
 
 
-timevector = [timevector(1):1/2000:timevector(end)]; %FOR TRAIN
-while tm <= length(timevector)-(rem(length(timevector), tdecode)) & (tm+tdecode) < length(timevector)
+while tm <= length(timevector)-(rem(length(timevector), tdecode))  & (tm+tdecode) < length(timevector)
       %for the cluster, permute through the velocities
       endprob = [];
 
@@ -159,46 +131,31 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode)) & (tm+tdecode)
           c = 1;
 
           while c <= numclust
-
+              size(numclust);
               name = char(clustname(c));
-              %ni = length(find(clusters.(name)>timevector(tm) & clusters.(name)<=timevector(tm+tdecode))); % finds index (number) of spikes in range time
-
-
-              curtrain = train.(name); %FOR TRAIN
-              ni = (curtrain(trainnum)+curtrain(trainnum+1)); %FOR TRAIN
-
-
-
-
+              ni = find(clusters.(name)>timevector(tm) & clusters.(name)<timevector(tm+tdecode)); % finds index (number) of spikes in range time
               fx = (fxmatrix(c, k));  %should be the rate for cell c at vel k.
 
+              if fx ~= 0
+                productme = productme + length(ni)*log(fx);  %IN
+              else
+                fx = eps;
+                productme = productme + length(ni)*log(fx);
 
-              productme = (productme + (ni)*log(fx));
+              end
 
-              %productme = productme + log((fx^length(ni)));
+
+              productme = (productme + length(ni)*log(fx));
 
               expme = (expme) + (fx);
               c = c+1; % goes to next cell, same velocity
 
           end
           % now have all cells at that velocity
-          tmm = t./2000;
+          tmm = t./samplingrate;
 
           %IF YOU WANT TO MULTIPLY BY PROB OF LOCATION COMMENT OUT FIRST LINE AND IN SECOND LINE
-          endprob(end+1) = (productme) + (-tmm.*expme); %NEW
-          %endprob(end+1) = log(probatvelocity(k)) + (productme) + (-tmm.*expme); %NEW
-
-
-        %  if max(isinf(endprob)) ==1
-        %      warning('youve got an infinity')
-              %length(ni)
-              %log(productme) %this is inf
-          %elseif mean(endprob) ==0
-          %    warning('youve got all zeros')
-          %    endprob
-          %end
-
-
+          endprob(end+1) = (productme) + (-tmm.*expme);
 
         end
 
@@ -215,12 +172,6 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode)) & (tm+tdecode)
 
 
 
-            %if max(isinf(test)) == 1
-            %endprob = exp(endprob-(max(endprob)*.2));
-            %else
-          %    endprob = test;
-        %    end
-
             conv = 1./sum(endprob(~isnan(endprob)), 'all');
 
       endprob = endprob*conv;
@@ -231,17 +182,14 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode)) & (tm+tdecode)
 
         maxprob(end+1) = idx;
         perc(end+1) = max(endprob);
-        %maxprob(end+1) = find(max(endprob)); %finds most likely range: 1 is for 0-10, 2 for 10-30, etc
-                                          % if I want probabilities need to make a matrix of endprobs instead of selecting max
+
         times(end+1) = timevector(tm);
 
 
         if tdecodesec>=.5
-          tm = tm+(t/2);
-          trainnum = trainnum +1;
+          tm = tm+(tdecode/2); %overlap
         else
-          tm = tm+t;
-          trainnum = trainnum +1;
+          tm = tm+tdecode;
         end
 
 
@@ -256,7 +204,7 @@ probs = percents;
 
 v = maxprob;
 
-binnum = v;
+binnumber = v;
 
 k=length(vbin);
 while k>0
@@ -272,8 +220,7 @@ k = k-1;
 end
 
 
-values = [v; times; binnum; perc];
+values = [v; times; binnumber; perc];
 
-toc
 
-errors=velerror(values, vel)
+errors=velerror(values, vel, tdecodesec, vbin);

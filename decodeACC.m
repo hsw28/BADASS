@@ -1,20 +1,19 @@
-function [values errors] = decodeACC(timevector, clusters, acc, tdecode, samplingrate, varagin)
-% decodes acceleration  based on cell firing.
+function [values errors] = decodeACC(timevector, clusters, acc, tdecode, samplingrate, varargin)
+% decodes acceleration  based on cell firing. acc. was binned into 14 cm/s2 bins also up to 95% acceleration occupancy (e.g., [-49, −35, −21, −7, 7, 21, 35, 49])
 % inputs = %time
             %structure of clusters
             %actual acceleration from accel.m
             %tdecode = bin to decode in seconds. if this is >= .5 seconds there will be 2/tdecode overlap in decoding
-            %time samples per second.
-            %varagin = vector of bins to vin acceleration into. if blank will be [-49, -35, -21, -7, 7, 21, 35, 49];
+            %%time samples per second (hz)
 
 % returns values = [decoded acc, timestamp, bin number, computed probability for being in bin]
-          %errors = errors computed from accerror.m
+%returns errors = errors computed from accerror.m
 
 
-if length(varargin{1}) > 0
-  vbin = cell2mat(varargin)
+if length(cell2mat(varargin)) > 0
+    binnum = cell2mat(varargin)+1
 else
-  vbin = [-49, -35, -21, -7, 7, 21, 35, 49];
+    binnum = 7;
 end
 
 t = tdecode;
@@ -63,7 +62,6 @@ for i = 1:m
   starttime+tsec*(i-1);
   starttime+tsec*i;
     wanted = find(decodetimevector > starttime+tsec*(i-1) & decodetimevector < (starttime+tsec*i));
-
     avg_accel(end+1) = mean(assvel(1,wanted)); % finds average acc within times
 
 end
@@ -82,22 +80,12 @@ while j <= numclust
     name = char(clustname(j));
     firingdata = clusters.(name);
     fxmatrix(j,:) = firingPerAcc(asstime, assvel, clusters.(name), tsec, vbin, avg_accel);
+    dontwant = isnan(fxmatrix(j,:));
+    fxmatrix(j,dontwant) = eps;
     j = j+1;
 end
 fxmatrix
 
-
-
-
-% find prob the animal is each velocity
-probatvelocity = zeros(length(vbin),1);
-binnedV = binAcc(asstime, vel, t/samplingrate, vbin);
-for k = 1:(length(vbin)+1)
-    numvel = find(binnedV == (k));
-    probatvelocity(k) = length(numvel)./length(binnedV);
-
-end
-probatvelocity;
 
 
 % permute times
@@ -128,7 +116,7 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode))  & (tm+tdecode
               if fx ~= 0
                 productme = productme + length(ni)*log(fx);  %IN
               else
-                fx = .00000000000000000000001;
+                fx = eps;
                 productme = productme + length(ni)*log(fx);
 
               end
@@ -199,14 +187,14 @@ while k>0
     lowestvel = median(vel(1,lowestvel));
     vnew(bin) = lowestvel;
     lowestvel
-  else % k<length(vbin)+1 & k>1
+  else
       vnew(bin) = (vbin(k-1)+vbin(k))/2;
 
-end
+  end
 k = k-1;
 end
 
 
 values = [vnew'; times; binnum; perc];
 
-errors = accerror(values, vel);
+errors = accerror(values, vel,tdecode);

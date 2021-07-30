@@ -1,53 +1,51 @@
-function [values median_is mean_is] = velerror(decodedvel, vel)
+function values = velerror(decodedvel, vel, tdecode, vbin)
 %returns an error in cm/s (vel) for each decoded time.
 %inputs should be:
                   %decoded vell from decodeVel.m
-                  %computed acceleration from velocity.m
-                  %vel bins used in decoding
+                  %computed vel from velocity.m
+                    %decoded time bin in s
+                  %bins used for deecoding, for ex [0, 7, 14, 21, 28, 35], where the last bin is all speeds >35cm/s
+%returns: values = [alldiff; realvel; time];
+    %difference in decoded speed versus actual
+    %mean actual speed in the bin
+    %time of decoding
+
 
 time = decodedvel(2,:);
 decodedvel = decodedvel(1,:);
+actualvel = vel(1,:);
 %vel = velocity(pos);
 
 
-%get velocity lower 5 percent range
-binacc = bintheta(vel(1,:), .5, 0, 30);
-numwewant = length(binacc)*.05;
-[N,EDGES] = histcounts(binacc,length(binacc));
-k = length(N);
-z = 0;
-while z<numwewant
-  z = z+N(k);
-  k = k-1;
-end
-lim = EDGES(k);
 
-alldiff = [];
-closevel = [];
-for i=1:length(time)
-  [c index] = (min(abs(time(i)-vel(2,:))));
-  closevel(end+1) = vel(1,index);
+tdecodesec = tdecode;
+%samprate = length(time)./(max(time)-min(time));
+%samprate = round(samprate)
+length(vel)
+(max(vel(2,:))-min(vel(2,:)));
+samprate = length(vel)./(max(vel(2,:))-min(vel(2,:)));
+samprate = (samprate);
 
-  %%for one section
-  if vel(1,index)>10 & vel(1,index)<30
-    diff = abs(decodedvel(i)-vel(1,index)); %%KEEP IN
+tdecode = round(samprate*tdecode);
+average_vel = [];
+diff = [];
+decodedtime = [];
+realtime = [];
+tm = 1;
+j = 1;
+while tm<=(max(time)-tdecode)
+  average_vel(end+1) = nanmean(actualvel(tm:tm+tdecode));
+  diff(end+1) = abs(decodedvel(j)-average_vel(end));
+  decodedtime(end+1) = time(j);
+  realtime(end+1)= nanmean(vel(2,tm:tm+tdecode));
+  j = j+1;
+  if tdecodesec>=.5
+    tm = tm+(tdecode/2); %overlap
   else
-    diff = NaN;
-  end
-
-  if closevel(end)<=lim
-    alldiff(end+1) = diff;
-  else
-    alldiff(end+1) = NaN;
+    tm = tm+tdecode;
   end
 end
 
-realvel = closevel;
-values = [alldiff; realvel; time];
-
-temp2 = values(1,:);
-
-mean_is = nanmean(temp2);
-median_is = nanmedian(temp2);
-
-%f = closevel;
+values = [diff; average_vel; decodedtime; realtime];
+median_is = nanmedian(diff)
+mean_is = nanmean(diff)

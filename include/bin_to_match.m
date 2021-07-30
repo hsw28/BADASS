@@ -3,7 +3,7 @@ function f = bin_to_match(to_bin, bin, overlap, samplingrate)
 %used to bin vel/acc/time whatever to compare with decoded values
 %input: %vector to bin
       % bin size (for ex, 1 for 1 second)
-      %any bin overlap (for ex, .5 for .5 seconds overlap)
+      %any bin overlap (for ex, .5 for .5 seconds overlap). for no overlap, make overlap=0
       %sampling rate
 
 samp = samplingrate;
@@ -18,7 +18,7 @@ bin = bin*samp;
 
 k=1;
 av = [];
-while k<length(i)-bin
+while k<length(to_bin)-bin
   av(end+1) = mean(to_bin(k:k+bin));
   k = k+(overlap);
 end
