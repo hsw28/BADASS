@@ -3,15 +3,18 @@ function [values errors] = decodeVel(clusters, vel, tdecode, varargin)
   % inputs =
               %structure of clusters
               %actual acc from velocity.m
-              %tdecode = bin to decode in seconds. if this is >= .5 seconds there will be 2/tdecode overlap in decoding
+              %tdecode = bin to decode in seconds. if this is >= 1 seconds there will be 2/tdecode overlap in decoding
               %varargin = size of bins to bin speed into. if left blank, it will be 7cm/s per bin
 
   % returns values = [decoded velocity, timestamp, bin number, computed probability for being in bin]
   % returns errors = errors computed from velerror.m
+  %
+  %note that if your sampling rate (hz) is not cleaning divisible by your tdecode, your sampling rate will be rounded. For example, if you sample at 30hz and want a tdecode of .25s, this would result in 7.5samples per bin, which will be rounded to 8
+
 
 
 if length(cell2mat(varargin)) > 0
-    binnum = cell2mat(varargin)
+    binnum = cell2mat(varargin);
 else
     binnum = 7;
 end
@@ -82,7 +85,7 @@ while percentsum<.05
 end
 totbin = k+1;
 vbin = [0:binnum:totbin*binnum];
-fprintf('your speeeds are binned into:')
+fprintf('your speeds are binned into:')
 vbin
 
 
@@ -181,10 +184,10 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode))  & (tm+tdecode
         times(end+1) = timevector(tm);
 
 
-        if tdecodesec>=.5
-          tm = tm+(tdecode/2); %overlap
+        if tdecodesec>=1
+          tm = tm+round(tdecode/2); %overlap
         else
-          tm = tm+tdecode;
+          tm = tm+round(tdecode);
         end
 
 
@@ -219,3 +222,7 @@ values = [v; times; binnumber; perc];
 
 
 errors=velerror(values, vel, tdecodesec);
+
+fprintf('your errors are:')
+median_error = nanmedian(errors(1,:))
+mean_error = nanmean(errors(1,:))

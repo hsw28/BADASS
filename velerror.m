@@ -35,7 +35,7 @@ while tm<=(length(time)-tdecode)
   diff(end+1) = abs(decodedvel(j)-average_vel(end));
   decodedtime(end+1) = time(j);
   j = j+1;
-  if tdecodesec>=.5
+  if tdecodesec>=1
     tm = tm+(tdecode/2); %overlap
   else
     tm = tm+tdecode;
@@ -43,6 +43,6 @@ while tm<=(length(time)-tdecode)
 end
 
 values = [diff; average_vel; decodedtime];
-fprintf('you errors are:')
-median_is = nanmedian(diff)
-mean_is = nanmean(diff)
+
+median_is = nanmedian(diff);
+mean_is = nanmean(diff);

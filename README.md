@@ -26,14 +26,24 @@ accerror.m = computes decoding error after decoding acceleration using decodeACC
 
 decodeAcc.m = decodes acceration using position and spike times
 
-decodeAccSHIFT.m = allows you to shift decoding in time to see most accurate decoding offset
+decodeAccSHIFT.m = allows you to shift decoding in time to see most accurate decoding offset. returns decoding errors per offset and spearman's rho per offset 
+
+decodeAcc_shuffle.m = shuffles spike times and decodes acc based on shuffled cell firing. returns 95% cutoff for shuffled error median, error mean, and spearman's rho
 
 decodeVel.m = computes velocity from position
 
-decodeVelSHIFT.m = allows you to shift decoding in time to see most accurate decoding offset
+decodeVelSHIFT.m = allows you to shift decoding in time to see most accurate decoding offset. returns decoding errors per offset and spearman's rho per offset
+
+decodeVel_shuffle.m = shuffles spike times and decodes speed based on shuffled cell firing. returns 95% cutoff for shuffled error median, error mean, and spearman's rho
 
 spearman_rankresults.m = uses spearman's rho to compute accuracy of decoding
 
 velerror.m = computes decoding error after decoding speed using decodeVel.m
 
 velocity.m = computes velocity from position
+
+
+------------------------------------------------------------
+
+
+A folder of sample data and instructions for running the sample data are included

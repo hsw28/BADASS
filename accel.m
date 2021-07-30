@@ -1,11 +1,16 @@
-function a = accel(pos, varagin);
+function a = accel(pos, varargin);
 	%computes acceleraiton. input a [#ofpoints, 3] vector, where first column is time, second is x, third is y
 	%varargin is pixels per cm if inputting in pixels. if empty no conversion will be made
 	%does not smooth
-	% returns acceleraiton in cm^2/s and time stamp vector
+	% returns matrix of acceleraiton in cm/s^2 and time stamp 
 
-pos = file;
-v = velocity(file, varagin);
+	if length(cell2mat(varargin))>0
+		pix_cm = cell2mat(varargin);
+	else
+		pix_cm = 1;
+	end
+
+v = velocity(pos, pix_cm);
 
 vel = v(1, :);
 t = v(2, :);

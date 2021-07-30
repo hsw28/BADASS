@@ -1,9 +1,7 @@
-function [f pval]= spearman_rankresults(actual_pos, actual_vel_or_acc, decoded_vel_or_acc, dim, varargin)
-%uses spearman's rho to compute accuracy of decoding
-%input actual position and actual velocity/acc and then decoded acc or vel from decodeACC or decodeVel
-%ranks positions from fastest to slowest based on actual velocity or acceleration
-%then ranks positions from fastest to slowest based on decoded
-%compares order of positions based on both rankings and outputs spearman's rho and a graph of comparisions
+function [f pval rho]= spearman_rankresults(actual_pos, actual_vel_or_acc, decoded_vel_or_acc, dim, varargin)
+%uses spearman's rho to compute accuracy of decoding. It ranks binned positions from fastest to slowest based on
+%actual speed or acceleration, and then ranks the samee positions from fastest to slowest based on decoded speed or acc.
+%it compares the two orders of positions based on both rankings and outputs a pval based on spearman's rho and a graph of comparisions
       %inputs = %actual positon [#ofpoints, 3] vector, where first column is time, second is x, third is y
                 %actual velocity from velocity.m or acc from accel.m
                 % decoded acc or vel from from decodeACC or decodeVel
@@ -15,6 +13,7 @@ function [f pval]= spearman_rankresults(actual_pos, actual_vel_or_acc, decoded_v
                 %column 3 and 6: average speed or acceration for position bin. column 3 is actual, column 6 is decoded
 
           %pval = spearman's rho p value
+          %rho = spearman's rho
 
 
 
@@ -55,6 +54,7 @@ rank1 = rank1(good,:);
 rank2 = rank2(good,:);
 
 
+
 rank1 = sortrows(rank1, 3);
 rank2 = sortrows(rank2, 3);
 %num = find(~isnan(rank2(:, 3)));
@@ -73,7 +73,7 @@ y = rank2(:,1);
 f = [rank1, rank2];
 
 
-
+figure
 scatter(x, y);
 [rho,pval] = corr(x,y, 'Type','Spearman');
 str1 = {'Spearmans rho' rho, 'P value' pval};
@@ -82,3 +82,4 @@ str1 = {'Spearmans rho' rho, 'P value' pval};
 xlabel('Actual Position Rank from Slowest Average Speed to Fastest')
 ylabel('Decoded Position Rank from Slowest Average Decoded Speed to Fastest')
 text(1.2,max(y)*.9,str1);
+pval = pval

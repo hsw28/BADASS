@@ -46,7 +46,7 @@ if size(vel,1)==4
   timevel = vel(2,:);
   vel = vel(1,:);
 
-%THIS MIGHT NEED REVISING
+
 elseif size(vel,1)==5
   highprobvel = find(vel(3,:)>0);
   vel = vel(:,highprobvel);
@@ -64,7 +64,7 @@ else
   vel = vel(1,:);
 
 end
-%%ENDDDDD
+
 
 
 %cut so same
@@ -126,6 +126,7 @@ averagecells = zeros(xbins, ybins);
 numincells = zeros(xbins,ybins);
 
 
+
   for x = (1:xbins) %WANT TO PERMUTE THROUGH EACH SQUARE OF SPACE SKIPPING NON OCCUPIED SQUARES. SO EACH BIN SHOULD HAVE TWO COORDINATES
     for y = (1:ybins)
         if x<xbins & y<ybins
@@ -141,7 +142,8 @@ numincells = zeros(xbins,ybins);
           inX = find(timesforvel(:,2)>=xinc(x));
           inY = find(timesforvel(:,3)>=yinc(y));
         end
-    %  end
+
+
 
         inboth = intersect(inX, inY); %inboth is the velocity index for cells in that bin
         if length(inboth)>0
@@ -174,7 +176,7 @@ else
   linearmean(low) = NaN;
 end
 
-length(linearmean)-length(low)
+length(linearmean)-length(low);
 
 %  linearmean(low) = NaN;
   [avs,idx] = sort(linearmean);

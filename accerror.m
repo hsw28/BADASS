@@ -35,7 +35,7 @@ function values  = acc_error(decodedacc, acc, tdecode)
     decodedtime(end+1) = time(j);
     time(tm);
     j = j+1;
-    if tdecodesec>=.5
+    if tdecodesec>=1
       tm = tm+(tdecode/2); %overlap
     else
       tm = tm+tdecode;
@@ -43,6 +43,6 @@ function values  = acc_error(decodedacc, acc, tdecode)
   end
 
   values = [diff; average_acc; decodedtime];
-  fprintf('you errors are:')
-  median_is = nanmedian(diff)
-  mean_is = nanmean(diff)
+
+  median_is = nanmedian(diff);
+  mean_is = nanmean(diff);

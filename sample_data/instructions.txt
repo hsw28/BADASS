@@ -1,0 +1,98 @@
+Instructions for running sample data:
+Download/clone the SIMPAC_decoding folder and add to your matlab path.
+
+The sample data file can be loaded into matlab and contains two pieces of data:
+  clusters:   a matlab structure that contains 13 fields, each representing one cluster.
+              each cluster entry is comprised of timestamps at which a spike occurred in the cluster
+  position:   a matlab double with three columns. the first column is the time stamp, second
+              column is the animal's X coordinate, and the third column is the animal's Y coordinate
+
+
+Getting started with speed and acceleration:
+  computing speed (velocity) from positional data:
+        >> vel = velocity(position, 3.5);     %3.5 is added as an input because the loaded position data has 3.5 pixels per cm
+
+  computing acceleration from positional data:
+        >> acc = accel(position, 3.5);        %3.5 is added as an input because the loaded position data has 3.5 pixels per cm
+
+Decoding speed:
+        >> [vel_decoded vel_errors] = decodeVel(clusters, vel, .5, 8);  %we are decoding in .5second increments with speed binned into 8cm/s bins
+  this code, while running, should output "your speeds are binned into: vbin = 0     8    16    24    32"
+  this means if speed is decoded into bin 1 then speed is decoded as being between 0-8cm/s. bin 2 is 8-16cm/s
+  bin 3 is 16-24cm/s, bin 4 is 24-32cm/s, and bin 5 is >32cm/s. bins are in 8cm/s increments based on the 8 we
+  inputed into the function. Bins are computed up to 95% of speed the animal has experienced.
+
+  when almost finshed running, the code should output "your errors are: median_is = 7.1680, mean_is 10.5027".
+  this is an output from the function velerror.m which is embedded in decodeVel.m. This function compares average actual
+  speed in the time bin to the decoded speed in the time bin, and outputs the median and mean difference between decoded
+  and actual. We recommend using median to judge decoding as mean tends to be very shifted since there is no upper bound
+  on actual speed.
+
+  error data is also included in the output "vel_errors", with first row being the difference in decoded speed and actual speed,
+  second row is actual speed, and third row is time of decoding
+
+  the other output, vel_decoded, has four rows. the first row is the decoded speed values (as an average of the two bin edges).
+  the second row is the time stamp. third row is the bin the speed falls into. fourth row is the certainty of the decoding,
+  with 1 being completely certain
+
+Decoding acceleration:
+        >> [acc_decoded acc_errors] = decodeAcc(clusters, acc, .5, 13); %we are decoding in .5second increments with acc binned into 9cm/s^2 bins
+  this code, while running, should output "your accelerations are binned into: vbin =     -26   -13     0    13    26".
+  this means bin 1 is an acceleration of <-26, bin 2 is betweeen -26 and -13, and so on, with the final bin all accel >26cm/s^2.
+  accelerations are divided into 9cm/s^2 bins as indicated in the entry to the function
+
+  the code should then output "your errors are: median_is = 18.9820 mean_is = 20.6367".
+  this is an output from the function accerror.m which is embedded in decodeAcc.m. This function compares average actual
+  acc in the time bin to the decoded acc in the time bin, and outputs the median and mean difference between decoded
+  and actual. We recommend using median to judge decoding as mean tends to be very shifted since there is no upper or lower
+  bound on actual acc.
+
+  error data is also included in the output "acc_errors", with first row being the difference in decoded acc and actual acc,
+  second row is actual acc, and third row is time of decoding
+
+  the other output, acc_decoded, has four rows. the first row is the decoded acc values (as an average of the two bin edges).
+  the second row is the time stamp. third row is the bin the acc falls into. fourth row is the certainty of the decoding,
+  with 1 being completely certain
+
+Determining accuracy using Spearman's rho:
+  this code uses spearman's rho to compute accuracy of decoding. It ranks binned positions from fastest to slowest based on
+  actual speed or acceleration, and then ranks the samee positions from fastest to slowest based on decoded speed or acc.
+  it compares the two orders of positions based on both rankings and outputs a pval based on spearman's rho and a graph of comparisions
+
+      >> [spearman_vel pval_vel] = spearman_rankresults(position, vel, vel_decoded, 10, 3.5);
+
+  this will output a graph with a rho value of 0.36 and a pvalue of 0.0133, which means the correlation between the ranking of fast and
+  slow positions for decoded data is significantly similar to actual data
+
+      >> [spearman_acc pval_acc] = spearman_rankresults(position, acc, acc_decoded, 10, 3.5);
+
+  the outputed pval should be 0.0081 with a rho of 0.38
+
+
+Testing against shuffled data:
+  To see if your decoding is significantly better than chance you want to compare it to shuffled spike times.
+  We like to compare spearman's rho of shuffled spike times to spearman's rho of actual times, but this function will also
+  find median and mean error of shuffled data. It returns the 95% cutoff for shuffled error median, means, and rho based on the number of permutations
+  you run the data.
+  To try this for velocity (this will take a while to run-- to test it for a lower number of permutations replace the '100' with a smaller number)
+
+      >> shuffvel = decodeVel_shuffle(clusters, vel, .5, position, 8, 10, 100, 3.5);
+
+  And acceleration
+
+      >> shuffacc = decodeAcc_shuffle(clusters, acc, .5, position, 13, 10, 100, 3.5);
+
+
+
+Shifting decoding:
+  You may want to determine if decoding improves if you shift decoding forward or backward in time.
+  You can do this using decodeVelSHIFT.m for speed and decodeAccSHIFT.m for acceleration.
+
+      >> shift_vel = decodeVelSHIFT(clusters, vel, .5, 1, .2, 8, position, 10, 3.5);
+
+  This code will shift velocity decoding in .2s increments starting with a backwards shift of .6s (-.6s),
+  then -.4s, then -.2s, then 0 shift, then .2s forward, etc. Mean and median error will be computed at each shift
+
+      >> shift_acc = decodeAccSHIFT(clusters, acc, .5, 1, .2, 13, position, 10, 3.5)
+
+  This code does the same but for decoding acceleration.
