@@ -24,11 +24,13 @@ accel.m = computes acceleration from position
 
 accerror.m = computes decoding error after decoding acceleration using decodeACC.m
 
-decodeACC.m = decodes acceration using position and spike times
+decodeAcc.m = decodes acceration using position and spike times
 
-decodeACCSHIFT.m = allows you to shift decoding in time to see most accurate decoding offset
+decodeAccSHIFT.m = allows you to shift decoding in time to see most accurate decoding offset
 
 decodeVel.m = computes velocity from position
+
+decodeVelSHIFT.m = allows you to shift decoding in time to see most accurate decoding offset
 
 spearman_rankresults.m = uses spearman's rho to compute accuracy of decoding
 

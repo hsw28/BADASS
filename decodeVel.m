@@ -1,10 +1,9 @@
-function [values errors] = decodeVel(timevector, clusters, vel, tdecode, samplingrate, varargin)
+function [values errors] = decodeVel(clusters, vel, tdecode, varargin)
   % decodes velocity  based on cell firing. speed was binned into bins of 7cm/s up to 95% speed occupancy (e.g., [0, 7, 14, 21, 28, 35], where the last bin is all speeds >35cm/s
-  % inputs = %time
+  % inputs =
               %structure of clusters
               %actual acc from velocity.m
               %tdecode = bin to decode in seconds. if this is >= .5 seconds there will be 2/tdecode overlap in decoding
-              %time samples per second (hz)
               %varargin = size of bins to bin speed into. if left blank, it will be 7cm/s per bin
 
   % returns values = [decoded velocity, timestamp, bin number, computed probability for being in bin]
@@ -17,23 +16,25 @@ else
     binnum = 7;
 end
 
+samplingrate = length(vel)./(max(vel(2,:))-min(vel(2,:)));
+
+
 t = tdecode;
 tsec = t;
-t = samplingrate*t;
+t = round(samplingrate*t);
 tdecodesec = tdecode;
-tdecode = tdecode*samplingrate;
+tdecode = round(tdecode*samplingrate);
 tm = 1;
 
 mintime = vel(2,1);
 maxtime = vel(2,end);
 
-[c indexmin] = (min(abs(timevector-mintime))); %how close the REM time is to velocity-- index is for REM time
-[c indexmax] = (min(abs(timevector-maxtime))); %how close the REM time is to velocity
-decodetimevector = timevector(indexmin:indexmax); %time vector is the REM time
-  timevector = decodetimevector;
+timevector = vel(2,:);
+decodetimevector = timevector;
 
 
-vel(1,:) = smoothdata(vel(1,:), 'gaussian', 30); %originally had this at 30, trying with 15 now
+
+vel(1,:) = smoothdata(vel(1,:), 'gaussian', 30);
 assvel = assignvel(decodetimevector, vel);
 asstime = assvel(2,:);
 
@@ -41,8 +42,6 @@ asstime = assvel(2,:);
 %find number of clusters
 clustname = (fieldnames(clusters));
 numclust = length(clustname);
-
-
 
 
 starttime = decodetimevector(1);
@@ -57,7 +56,7 @@ duration = endtime-starttime;
      time_v = time_v(1:end-1);
  end
  m = length(time_v);
-%avg_accel = zeros(m,1);
+
 avg_accel = [];
 for i = 1:m
   starttime+tsec*(i-1);
@@ -99,9 +98,6 @@ while j <= numclust
     fxmatrix(j,dontwant) = eps;
     j = j+1;
 end
-
-
-
 fxmatrix;
 
 
@@ -125,7 +121,6 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode))  & (tm+tdecode
 
         for k = (1:length(vbin)) % six for the 6 groups of velocities
           %PERMUTE THROUGH THE CLUSTERS
-          %productme = 1; OLD
           productme =0;
           expme = 0;
           c = 1;
@@ -223,4 +218,4 @@ end
 values = [v; times; binnumber; perc];
 
 
-errors=velerror(values, vel, tdecodesec, vbin);
+errors=velerror(values, vel, tdecodesec);

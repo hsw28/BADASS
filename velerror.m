@@ -1,28 +1,23 @@
-function values = velerror(decodedvel, vel, tdecode, vbin)
+function values = velerror(decodedvel, vel, tdecode)
 %returns an error in cm/s (vel) for each decoded time.
 %inputs should be:
                   %decoded vell from decodeVel.m
                   %computed vel from velocity.m
                     %decoded time bin in s
-                  %bins used for deecoding, for ex [0, 7, 14, 21, 28, 35], where the last bin is all speeds >35cm/s
 %returns: values = [alldiff; realvel; time];
     %difference in decoded speed versus actual
     %mean actual speed in the bin
     %time of decoding
 
 
-time = decodedvel(2,:);
+
 decodedvel = decodedvel(1,:);
 actualvel = vel(1,:);
-%vel = velocity(pos);
+time = vel(2,:);
 
 
 
 tdecodesec = tdecode;
-%samprate = length(time)./(max(time)-min(time));
-%samprate = round(samprate)
-length(vel)
-(max(vel(2,:))-min(vel(2,:)));
 samprate = length(vel)./(max(vel(2,:))-min(vel(2,:)));
 samprate = (samprate);
 
@@ -33,11 +28,12 @@ decodedtime = [];
 realtime = [];
 tm = 1;
 j = 1;
-while tm<=(max(time)-tdecode)
+
+
+while tm<=(length(time)-tdecode)
   average_vel(end+1) = nanmean(actualvel(tm:tm+tdecode));
   diff(end+1) = abs(decodedvel(j)-average_vel(end));
   decodedtime(end+1) = time(j);
-  realtime(end+1)= nanmean(vel(2,tm:tm+tdecode));
   j = j+1;
   if tdecodesec>=.5
     tm = tm+(tdecode/2); %overlap
@@ -46,6 +42,7 @@ while tm<=(max(time)-tdecode)
   end
 end
 
-values = [diff; average_vel; decodedtime; realtime];
+values = [diff; average_vel; decodedtime];
+fprintf('you errors are:')
 median_is = nanmedian(diff)
 mean_is = nanmean(diff)

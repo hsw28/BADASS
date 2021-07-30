@@ -38,9 +38,8 @@ start = min(time);
 ending = max(time);
 
 r = mua_rate(firingdata,start,ending,t);
-%info = thetaPowerVsTime(lfpdata,time,L,L);
 rate = r(2,:).*1/t; % number of spikes per time bin -- converted to spikes per second
-fastest = round(max(rate));
+fastest = (max(rate));
 m = length(rate);
 
 
@@ -50,7 +49,6 @@ maxacc = max(avg_accel);
 
 
 average = [];
-deviation = zeros(fastest+1,1);
 threshold = .01 * length(rate);
 
 

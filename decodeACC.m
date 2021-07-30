@@ -1,47 +1,47 @@
-function [values errors] = decodeACC(timevector, clusters, acc, tdecode, samplingrate, varargin)
+function [values errors] = decodeACC(clusters, acc, tdecode, varargin)
 % decodes acceleration  based on cell firing. acc. was binned into 14 cm/s2 bins also up to 95% acceleration occupancy (e.g., [-49, −35, −21, −7, 7, 21, 35, 49])
-% inputs = %time
+% inputs =
             %structure of clusters
             %actual acceleration from accel.m
             %tdecode = bin to decode in seconds. if this is >= .5 seconds there will be 2/tdecode overlap in decoding
             %%time samples per second (hz)
+            %varargin = size of bins to bin speed into. if left blank, it will be 14cm^2/s per bin. this will always be symetric around zero
 
 % returns values = [decoded acc, timestamp, bin number, computed probability for being in bin]
 %returns errors = errors computed from accerror.m
 
 
 if length(cell2mat(varargin)) > 0
-    binnum = cell2mat(varargin)+1
+    binnum = cell2mat(varargin)
 else
-    binnum = 7;
+    binnum = 14;
 end
+
+samplingrate = length(acc)./(max(acc(2,:))-min(acc(2,:)));
+
 
 t = tdecode;
 tsec = t;
-t = samplingrate*t;
+t = round(samplingrate*t);
 tdecodesec = tdecode;
-tdecode = tdecode*samplingrate;
+tdecode = round(tdecode*samplingrate);
 tm = 1;
 
-mintime = vel(2,1);
-maxtime = vel(2,end);
+mintime = acc(2,1);
+maxtime = acc(2,end);
 
 
-[c indexmin] = (min(abs(timevector-mintime)));
-[c indexmax] = (min(abs(timevector-maxtime)));
-decodetimevector = timevector(indexmin:indexmax);
+timevector = acc(2,:);
+decodetimevector = timevector;
 
-%%%%%%%%%%COMMENT THIS OUT IF YOUR DECODED TIME IS DIFFERENT THAN YOUR MAZE TIME%%%%
-timevector = decodetimevector;
-%%%%%%%%%%%%%%%%%
 
-vel = acc;
-assvel = assignvel(decodetimevector, vel);
-asstime = assvel(2,:);
+acc(1,:) = smoothdata(acc(1,:), 'gaussian', 30); %originally had this at 30, trying with 15 now
+assacc= assignvel(decodetimevector, acc);
+asstime = assacc(2,:);
 
 %find number of clusters
 clustname = (fieldnames(clusters));
-numclust = length(clustname)
+numclust = length(clustname);
 
 
 starttime = decodetimevector(1);
@@ -62,12 +62,30 @@ for i = 1:m
   starttime+tsec*(i-1);
   starttime+tsec*i;
     wanted = find(decodetimevector > starttime+tsec*(i-1) & decodetimevector < (starttime+tsec*i));
-    avg_accel(end+1) = mean(assvel(1,wanted)); % finds average acc within times
+    avg_accel(end+1) = mean(assacc(1,wanted)); % finds average acc within times
 
 end
 size(avg_accel);
 avg_accel = avg_accel';
 %%%
+
+binnedVelo = histcounts(abs(avg_accel), 'BinWidth', binnum);
+binnedVelo = binnedVelo./sum(binnedVelo);
+k = length(binnedVelo);
+percentsum = 0;
+while percentsum<.05
+  percentsum = percentsum + binnedVelo(k);
+  k = k-1;
+end
+totbin = k+1;
+vbin1 = [(-totbin*binnum):binnum:0];
+vbin2 = [0:binnum:totbin*binnum];
+vbin = [vbin1; vbin2];
+vbin = unique(vbin);
+vbin = vbin';
+fprintf('your speeeds are binned into:')
+vbin
+
 
 
 
@@ -79,12 +97,12 @@ fxmatrix = zeros(numclust, length(vbin)+1);
 while j <= numclust
     name = char(clustname(j));
     firingdata = clusters.(name);
-    fxmatrix(j,:) = firingPerAcc(asstime, assvel, clusters.(name), tsec, vbin, avg_accel);
+    fxmatrix(j,:) = firingPerAcc(asstime, assacc, clusters.(name), tsec, vbin, avg_accel);
     dontwant = isnan(fxmatrix(j,:));
     fxmatrix(j,dontwant) = eps;
     j = j+1;
 end
-fxmatrix
+fxmatrix;
 
 
 
@@ -111,7 +129,7 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode))  & (tm+tdecode
               size(numclust);
               name = char(clustname(c));
               ni = find(clusters.(name)>timevector(tm) & clusters.(name)<timevector(tm+tdecode)); % finds index (number) of spikes in range time
-              fx = (fxmatrix(c, k));  %should be the rate for cell c at vel k.
+              fx = (fxmatrix(c, k));  %should be the rate for cell c at acc k.
 
               if fx ~= 0
                 productme = productme + length(ni)*log(fx);  %IN
@@ -125,10 +143,10 @@ while tm <= length(timevector)-(rem(length(timevector), tdecode))  & (tm+tdecode
 
 
               expme = (expme) + (fx);
-              c = c+1; % goes to next cell, same velocity bin
+              c = c+1; % goes to next cell, same acc bin
 
           end
-          % now have all cells at that velocity
+          % now have all cells at that acc
           tmm = t./samplingrate;
 
           %IF YOU WANT TO MULTIPLY BY PROB OF LOCATION COMMENT OUT FIRST LINE AND IN SECOND LINE
@@ -178,15 +196,13 @@ k=length(vbin)+1;
 while k>0
   bin = find(v==k);
   if k==length(vbin)+1
-    highestvel = find(vel(1,:)>vbin(end));
-    highestvel = median(vel(1,highestvel));
-    vnew(bin) = highestvel;
-    highestvel
+    highestacc = find(acc(1,:)>vbin(end));
+    highestacc = median(acc(1,highestacc));
+    vnew(bin) = highestacc;
   elseif k==1
-    lowestvel = find(vel(1,:)<vbin(1));
-    lowestvel = median(vel(1,lowestvel));
-    vnew(bin) = lowestvel;
-    lowestvel
+    lowestacc = find(acc(1,:)<vbin(1));
+    lowestacc = median(acc(1,lowestacc));
+    vnew(bin) = lowestacc;
   else
       vnew(bin) = (vbin(k-1)+vbin(k))/2;
 
@@ -197,4 +213,4 @@ end
 
 values = [vnew'; times; binnum; perc];
 
-errors = accerror(values, vel,tdecode);
+errors = accerror(values, acc,tdecodesec);

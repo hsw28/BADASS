@@ -47,7 +47,6 @@ maxacc = max(avg_accel);
 
 
 average = [];
-deviation = zeros(fastest+1,1);
 threshold = .01 * length(rate);
 
 

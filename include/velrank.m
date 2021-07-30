@@ -2,8 +2,8 @@ function f = velrank(posData, vel, dimX, dimY, varargin)
 %include function to rank positions for spearman_rankresults
 
 
-if length(varargin{1})>0
-	pix_cm = cell2mat(varargin)
+if length(cell2mat(varargin))>0
+	pix_cm = cell2mat(varargin);
 else
 	pix_cm = 1;
 end
