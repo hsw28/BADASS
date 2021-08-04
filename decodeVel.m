@@ -1,4 +1,4 @@
-function [values errors] = decodeVel(clusters, vel, tdecode, varargin)
+function [values errors probs] = decodeVel(clusters, vel, tdecode, varargin)
   % decodes velocity  based on cell firing. speed was binned into bins of 7cm/s up to 95% speed occupancy (e.g., [0, 7, 14, 21, 28, 35], where the last bin is all speeds >35cm/s
   % inputs =
               %structure of clusters
@@ -8,6 +8,8 @@ function [values errors] = decodeVel(clusters, vel, tdecode, varargin)
 
   % returns values = [decoded velocity, timestamp, bin number, computed probability for being in bin]
   % returns errors = errors computed from velerror.m
+  % returns probs = probability of being in each speed bin per time
+
   %
   %note that if your sampling rate (hz) is not cleaning divisible by your tdecode, your sampling rate will be rounded. For example, if you sample at 30hz and want a tdecode of .25s, this would result in 7.5samples per bin, which will be rounded to 8
 

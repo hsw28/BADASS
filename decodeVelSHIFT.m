@@ -38,7 +38,7 @@ errors = zeros(round((maxSHIFT*2)./shift_increment), 5);
 k = -maxSHIFT;
 z = 1;
 
-while k<=maxSHIFT+shift_increment
+while k<=maxSHIFT
   l = 1;
   while l <= numclust %subtract
       name = char(clustname(l));

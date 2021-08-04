@@ -1,0 +1,98 @@
+
+%%FIGURE 1
+subplot(3,3,1)
+>> normalizePosData(CLUSTERSls8.cluster_rat10_2018_04_15_17_cl_4, POSall.date_rat10_2018_04_15_position,4);
+subplot(3,3,2)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_15_9_cl_3, POSall.date_rat10_2018_04_15_position,4);
+subplot(3,3,3)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_19_14_cl_2, POSall.date_rat10_2018_04_19_position,4);
+subplot(3,3,4)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_15_7_cl_3, POSall.date_rat10_2018_04_15_position,4);
+subplot(3,3,5)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_15_12_cl_1, POSall.date_rat10_2018_04_15_position,4);
+subplot(3,3,6)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_19_13_cl_3, POSall.date_rat10_2018_04_19_position,4);
+subplot(3,3,7)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_19_16_cl_2, POSall.date_rat10_2018_04_19_position,4);
+subplot(3,3,8)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_19_13_cl_4, POSall.date_rat10_2018_04_19_position,4);
+subplot(3,3,9)
+>> normalizePosData(CLUSTERShpc8.cluster_rat10_2018_04_15_11_cl_1, POSall.date_rat10_2018_04_15_position,4);
+
+[temp tempmatrices] = decodeshitPos(TIMEall.date_rat10_2018_04_19_time, POSall.date_rat10_2018_04_19_position(5000:25000,:), CLUSTERShpc8Copy, .5, 10)
+>> colormap('parula');
+>> [nr,nc] = size(tempmatrices(:,:,1)');
+subplot(1,4,1)
+>> pcolor([tempmatrices(:,:,1000)' nan(nr,1); nan(1,nc+1)]);
+grid off
+set(gca,'visible','off')
+subplot(1,4,2)
+>> pcolor([tempmatrices(:,:,1001)' nan(nr,1); nan(1,nc+1)]);
+grid off
+set(gca,'visible','off')
+subplot(1,4,3)
+>> pcolor([tempmatrices(:,:,1002)' nan(nr,1); nan(1,nc+1)]);
+grid off
+set(gca,'visible','off')
+subplot(1,4,4)
+>> pcolor([tempmatrices(:,:,1003)' nan(nr,1); nan(1,nc+1)]);
+grid off
+set(gca,'visible','off')
+
+
+%%Figure 2
+
+subplot(1,2,1)
+>> velVsFiringRateNew(TIMEall.date_rat6_2017_04_29_time, POSall.date_rat6_2017_04_29_vel, CLUSTERSlsRAT6.cluster_rat6_2017_04_29_26_maze_cl_2, 5)
+>> ylabel('Firing rate (hz)')
+>> xlabel('Speed (cm/s)')
+subplot(1,2,2)
+>> velVsFiringRateNew(TIMEall.date_rat12_2018_08_06_time, POSall.date_rat12_2018_08_06_vel, CLUSTERSlsRAT12.cluster_rat12_2018_08_06_30_cl_1, 5)
+>> ylabel('Firing rate (hz)')
+>> xlabel('Speed (cm/s)')
+
+subplot(1,2,1)
+accelVsFiringRateNew(TIMEall.date_rat6_2017_04_27_time, POSall.date_rat6_2017_04_27_acc, CLUSTERSlsRAT6.cluster_rat6_2017_04_27_26_maze_cl_2, 5)
+>> ylabel('Firing rate (hz)')
+>> xlabel('Acceleration (cm/s^2)')
+subplot(1,2,2)
+accelVsFiringRateNew(TIMEall.date_rat9_2018_02_07_time, POSall.date_rat9_2018_02_07_acc, CLUSTERS27.cluster_rat9_2018_02_07_28_maze_cl_4, 5)
+>> ylabel('Firing rate (hz)')
+>> xlabel('Acceleration (cm/s^2)')
+
+
+[d20180820decodevelp5 d20180820decodevelprobsp5] = decodeVel(temp20180820, POS12maze.date_rat12_2018_08_20_vel, .5, 7);
+figure
+imagesc([d20180820decodevelp5(2,1) d20180820decodevelp5(2, end)], [0 42], d20180820decodevelprobsp5', [.15 1])
+ax = gca;
+ax.YDir = 'normal'
+hold on
+>> axis([556 576 -3.5 30])
+%% >> axis([555.5 582.5 -3.5 46.2])
+plot(POS12maze.date_rat12_2018_08_20_vel(2,:), smoothdata(POS12maze.date_rat12_2018_08_20_vel(1,:),'gaussian', 24) , 'black', 'LineWidth', 3)
+plot(POS12maze.date_rat12_2018_08_20_vel(2,:), smoothdata(POS12maze.date_rat12_2018_08_20_vel(1,:),'gaussian', 24) , 'white', 'LineWidth', 2)
+xlabel('Seconds')
+ylabel('Velocity (cm/s)')
+
+
+
+>> [d20180820decodeaccp5 d20180820decodeaccprobsp5] = decodeAcc(temp20180820, POS12maze.date_rat12_2018_08_20_acc, .5, 10);
+>> figure
+>> imagesc([d20180820decodeaccp5(2,1) d20180820decodeaccp5(2, end)], [-42 42], d20180820decodeaccprobsp5', [.15 1])
+>> ax = gca;
+>> ax.YDir = 'normal'
+>> hold on
+>> plot(POS12maze.date_rat12_2018_08_20_acc(2,:), smoothdata(POS12maze.date_rat12_2018_08_20_acc(1,:),'gaussian', 30) , 'black', 'LineWidth', 3)
+>> plot(POS12maze.date_rat12_2018_08_20_acc(2,:), smoothdata(POS12maze.date_rat12_2018_08_20_acc(1,:),'gaussian', 30) , 'white', 'LineWidth', 2)
+>> axis([1058, 1069, -47, 47])
+>> set(gca, 'clim', [.16, 1]);
+>> xlabel('Seconds')
+>> ylabel('Acceleration (cm/s^2)')
+
+%figure 4
+spearman_rankresults(POS12maze.date_rat12_2018_08_20_position, POS12maze.date_rat12_2018_08_20_vel, d20180820decodevelp5, 5, 3.5)
+
+decodeVel_shuffle(temp20180820, POS12maze.date_rat12_2018_08_20_vel, .5, POS12maze.date_rat12_2018_08_20_position, 7, 5, 100, 3.5);
+
+%figure 5
+decodeVelSHIFT(temp20180820, POS12maze.date_rat12_2018_08_20_vel, .5, .3, .05, 7, POS12maze.date_rat12_2018_08_20_position, 10, 3.5);

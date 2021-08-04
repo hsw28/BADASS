@@ -51,7 +51,7 @@ end
 
 f = [med;av;rhovec]';
 
-lowest = round(length(med)*.05);
+lowest = floor(length(med)*.05);
 med = sort(med);
 av = sort(av);
 if lowest<1
@@ -62,7 +62,7 @@ med(lowest)
 fprintf('95 cutoff for mean error is')
 av(lowest)
 fprintf('95 cutoff for spearmans rho is')
-rhovec(length(rhovec)-lowest)
+rhovec(lowest)
 end
 
 set(0,'DefaultFigureVisible', 'on');

@@ -88,11 +88,11 @@ Shifting decoding:
   You may want to determine if decoding improves if you shift decoding forward or backward in time.
   You can do this using decodeVelSHIFT.m for speed and decodeAccSHIFT.m for acceleration.
 
-      >> shift_vel = decodeVelSHIFT(clusters, vel, .5, 1, .2, 8, position, 10, 3.5);
+      >> shift_vel = decodeVelSHIFT(clusters, vel, .5, .3, .03, 8, position, 10, 3.5);
 
   This code will shift velocity decoding in .2s increments starting with a backwards shift of .6s (-.6s),
   then -.4s, then -.2s, then 0 shift, then .2s forward, etc. Mean and median error will be computed at each shift
 
-      >> shift_acc = decodeAccSHIFT(clusters, acc, .5, 1, .2, 13, position, 10, 3.5)
+      >> shift_acc = decodeAccSHIFT(clusters, acc, .5, .3, .03, 13, position, 10, 3.5)
 
   This code does the same but for decoding acceleration.

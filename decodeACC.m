@@ -1,4 +1,4 @@
-function [values errors] = decodeAcc(clusters, acc, tdecode, varargin)
+function [values errors probs] = decodeAcc(clusters, acc, tdecode, varargin)
 % decodes acceleration  based on cell firing. acc. was binned into 14 cm/s2 bins also up to 95% acceleration occupancy (e.g., [-49, −35, −21, −7, 7, 21, 35, 49]) where the two most extreme bins are all values <-49 and >49cm^2/s
 % inputs =
             %structure of clusters
@@ -9,6 +9,8 @@ function [values errors] = decodeAcc(clusters, acc, tdecode, varargin)
 %
 % returns values = [decoded acc, timestamp, bin number, computed probability for being in bin]
 %returns errors = errors computed from accerror.m
+% returns probs = probability of being in each speed bin per time
+
 %
 %note that if your sampling rate (hz) is not cleaning divisible by your tdecode, your sampling rate will be rounded. For example, if you sample at 30hz and want a tdecode of .25s, this would result in 7.5samples per bin, which will be rounded to 8
 
